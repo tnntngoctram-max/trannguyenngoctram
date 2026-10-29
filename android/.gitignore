@@ -1,0 +1,15 @@
+# Flutter/Dart/Pub
+build/
+.dart_tool/
+.pub-cache/
+.pub/
+
+# Android/iOS generated
+android/app/debug/
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+
+# Environment / IDE
+.idea/
+.vscode/
+*.iml
