@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../utils/storage.dart';
 
-/// Dio/Http client gắn JWT Token
+/// Http client gắn JWT Token (Hỗ trợ GET, POST, PUT, DELETE)
 class ApiClient {
   Future<Map<String, String>> _getHeaders() async {
     final token = await Storage.getToken();
@@ -25,6 +25,22 @@ class ApiClient {
       headers: headers,
       body: jsonEncode(body),
     );
+    return response;
+  }
+
+  Future<http.Response> put(String endpoint, Map<String, dynamic> body) async {
+    final headers = await _getHeaders();
+    final response = await http.put(
+      Uri.parse(endpoint),
+      headers: headers,
+      body: jsonEncode(body),
+    );
+    return response;
+  }
+
+  Future<http.Response> delete(String endpoint) async {
+    final headers = await _getHeaders();
+    final response = await http.delete(Uri.parse(endpoint), headers: headers);
     return response;
   }
 }

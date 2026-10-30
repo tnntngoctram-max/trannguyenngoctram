@@ -2,7 +2,7 @@ import 'api_client.dart';
 import '../config/config_url.dart';
 import 'dart:convert';
 
-/// Service quản lý Môn học & Lịch học
+/// Service quản lý Môn học & Lịch học (CRUD đầy đủ)
 class CourseService {
   final ApiClient _apiClient = ApiClient();
 
@@ -46,6 +46,24 @@ class CourseService {
     try {
       final response = await _apiClient.post(ConfigUrl.courses, courseData);
       return response.statusCode == 200 || response.statusCode == 201;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> updateCourse(int courseId, Map<String, dynamic> courseData) async {
+    try {
+      final response = await _apiClient.put('${ConfigUrl.courses}/$courseId', courseData);
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> deleteCourse(int courseId) async {
+    try {
+      final response = await _apiClient.delete('${ConfigUrl.courses}/$courseId');
+      return response.statusCode == 200;
     } catch (_) {
       return false;
     }
