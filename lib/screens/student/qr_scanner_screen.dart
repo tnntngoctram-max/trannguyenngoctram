@@ -170,6 +170,44 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
     );
   }
 
+  /// Dialog khi xác thực sinh trắc học không thành công / bị hủy
+  Future<bool> _showBiometricFailedDialog() async {
+    final bool? result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.fingerprint_rounded, color: Colors.orange, size: 28),
+            SizedBox(width: 8),
+            Text('Xác thực sinh trắc học'),
+          ],
+        ),
+        content: const Text(
+          'Không thể hoàn tất xác thực sinh trắc học trên thiết bị.\n\n'
+          'Bạn có muốn bỏ qua bước sinh trắc học và tiếp tục gửi điểm danh theo mã QR không?',
+          style: TextStyle(fontSize: 15),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppConstants.primaryColor,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Bỏ qua & Điểm danh', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
   /// Xử lý mã QR sau khi quét thành công
   void _onQrCodeScanned(String qrCode) async {
     if (_isProcessing) return;
@@ -185,16 +223,20 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
     // 1. Xác thực sinh trắc học (nếu thiết bị hỗ trợ & có đăng ký)
     bool canAuth = await _biometricService.isSupported();
     if (canAuth) {
-      setState(() => _statusMessage = 'Vui lòng xác thực sinh trắc học...');
+      setState(() => _statusMessage = 'Vui lòng xác thực sinh trắc học / mã PIN...');
       bool isAuthenticated = await _biometricService.authenticate();
-      if (!isAuthenticated) {
-        if (!mounted) return;
-        setState(() {
-          _isProcessing = false;
-          _statusMessage = 'Xác thực sinh trắc học chưa hoàn tất!';
-        });
-        _showErrorDialog('Xác thực sinh trắc học không thành công. Vui lòng thử lại!');
-        return;
+      
+      if (!isAuthenticated && mounted) {
+        // Hỏi sinh viên có muốn bỏ qua sinh trắc học để tiếp tục điểm danh bằng QR không
+        final bool shouldProceed = await _showBiometricFailedDialog();
+        if (!shouldProceed) {
+          setState(() {
+            _isProcessing = false;
+            _statusMessage = 'Đã hủy điểm danh.';
+          });
+          _scannerController.start();
+          return;
+        }
       }
     }
 
