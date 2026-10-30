@@ -176,48 +176,48 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
 
     setState(() {
       _isProcessing = true;
-      _statusMessage = 'Đang xử lý mã QR: $qrCode...';
+      _statusMessage = 'Đang xử lý mã QR...';
     });
 
     HapticFeedback.mediumImpact();
     await _scannerController.stop();
 
-    // 1. Xác thực sinh trắc học (nếu thiết bị hỗ trợ)
+    // 1. Xác thực sinh trắc học (nếu thiết bị hỗ trợ & có đăng ký)
     bool canAuth = await _biometricService.isSupported();
     if (canAuth) {
-      setState(() => _statusMessage = 'Vui lòng xác thực vân tay / khuôn mặt...');
+      setState(() => _statusMessage = 'Vui lòng xác thực sinh trắc học...');
       bool isAuthenticated = await _biometricService.authenticate();
       if (!isAuthenticated) {
         if (!mounted) return;
         setState(() {
           _isProcessing = false;
-          _statusMessage = 'Xác thực sinh trắc học thất bại!';
+          _statusMessage = 'Xác thực sinh trắc học chưa hoàn tất!';
         });
         _showErrorDialog('Xác thực sinh trắc học không thành công. Vui lòng thử lại!');
         return;
       }
     }
 
-    // 2. Gửi API điểm danh
-    setState(() => _statusMessage = 'Đang gửi thông tin điểm danh...');
-    bool success = await _attendanceService.scanQr(qrCode: qrCode);
+    // 2. Gửi API điểm danh lên hệ thống
+    setState(() => _statusMessage = 'Đang gửi dữ liệu điểm danh...');
+    final ScanQrResponse response = await _attendanceService.scanQr(qrCode: qrCode);
 
     if (!mounted) return;
     setState(() {
       _isProcessing = false;
-      _statusMessage = success ? 'Điểm danh thành công!' : 'Điểm danh thất bại!';
+      _statusMessage = response.isSuccess ? 'Điểm danh thành công!' : 'Điểm danh thất bại!';
     });
 
-    if (success) {
+    if (response.isSuccess) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Điểm danh thành công!'),
+        SnackBar(
+          content: Text(response.message),
           backgroundColor: Colors.green,
         ),
       );
       Navigator.pop(context);
     } else {
-      _showErrorDialog('Điểm danh thất bại hoặc mã QR không hợp lệ!');
+      _showErrorDialog(response.message);
     }
   }
 

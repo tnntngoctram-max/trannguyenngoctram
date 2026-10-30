@@ -4,20 +4,78 @@ import '../models/attendance_session.dart';
 import '../models/attendance_record.dart';
 import 'dart:convert';
 
+/// Kết quả trả veề từ API Quét QR điểm danh
+class ScanQrResponse {
+  final bool isSuccess;
+  final String message;
+  final int statusCode;
+
+  ScanQrResponse({
+    required this.isSuccess,
+    required this.message,
+    required this.statusCode,
+  });
+}
+
 /// API Điểm danh (Aligned with api_n3conca)
 class AttendanceService {
   final ApiClient _apiClient = ApiClient();
 
-  Future<bool> scanQr({
+  Future<ScanQrResponse> scanQr({
     required String qrCode,
   }) async {
     try {
+      String cleanCode = qrCode.trim();
+      // Trích xuất mã nếu QR dạng JSON string
+      if (cleanCode.startsWith('{') && cleanCode.endsWith('}')) {
+        try {
+          final Map<String, dynamic> parsed = jsonDecode(cleanCode);
+          cleanCode = parsed['qrCode'] ?? parsed['qrToken'] ?? parsed['code'] ?? parsed['token'] ?? cleanCode;
+        } catch (_) {}
+      }
+
       final response = await _apiClient.post(ConfigUrl.scanQr, {
-        'qrCode': qrCode,
+        'qrCode': cleanCode,
+        'code': cleanCode,
+        'token': cleanCode,
+        'qrToken': cleanCode,
       });
-      return response.statusCode == 200 || response.statusCode == 201;
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        String msg = 'Điểm danh thành công!';
+        try {
+          final decoded = jsonDecode(response.body);
+          if (decoded is Map && decoded.containsKey('message')) {
+            msg = decoded['message'];
+          }
+        } catch (_) {}
+        return ScanQrResponse(isSuccess: true, message: msg, statusCode: response.statusCode);
+      } else {
+        String errorMsg = 'Mã QR không hợp lệ hoặc đã hết hạn!';
+        try {
+          final decoded = jsonDecode(response.body);
+          if (decoded is Map) {
+            errorMsg = decoded['message'] ?? decoded['error'] ?? decoded['title'] ?? errorMsg;
+          } else if (decoded is String && decoded.isNotEmpty) {
+            errorMsg = decoded;
+          }
+        } catch (_) {
+          if (response.body.isNotEmpty && response.body.length < 150) {
+            errorMsg = response.body;
+          }
+        }
+        return ScanQrResponse(
+          isSuccess: false,
+          message: '$errorMsg (Mã lỗi HTTP ${response.statusCode})',
+          statusCode: response.statusCode,
+        );
+      }
     } catch (e) {
-      return false;
+      return ScanQrResponse(
+        isSuccess: false,
+        message: 'Lỗi kết nối máy chủ: $e',
+        statusCode: 500,
+      );
     }
   }
 
