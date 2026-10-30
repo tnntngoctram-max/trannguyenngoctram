@@ -50,4 +50,6 @@ app.*.map.json
 # Android local configuration & build cache
 android/local.properties
 android/.gradle/
+devtools_options.yaml
+
 
