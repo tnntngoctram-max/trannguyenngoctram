@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../services/attendance_service.dart';
 import '../../models/attendance_record.dart';
+import '../../utils/constants.dart';
 
-/// Lịch sử điểm danh cá nhân
+/// Lịch sử điểm danh cá nhân (Soft rounded icons)
 class AttendanceHistoryScreen extends StatefulWidget {
   const AttendanceHistoryScreen({super.key});
 
@@ -39,11 +40,15 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
             itemCount: records.length,
             itemBuilder: (context, index) {
               final record = records[index];
-              return ListTile(
-                leading: const Icon(Icons.check_circle, color: Colors.green),
-                title: Text('Phiên: ${record.sessionId}'),
-                subtitle: Text('Thời gian: ${record.checkInTime}'),
-                trailing: Text(record.status, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo)),
+              return Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppConstants.defaultRadius)),
+                child: ListTile(
+                  leading: const Icon(Icons.check_circle_rounded, color: AppConstants.accentColor, size: 32),
+                  title: Text('Môn: ${record.courseCode} - ${record.courseName}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text('Thời gian: ${record.attendanceTime}'),
+                  trailing: Text(record.status, style: const TextStyle(fontWeight: FontWeight.bold, color: AppConstants.primaryColor)),
+                ),
               );
             },
           );

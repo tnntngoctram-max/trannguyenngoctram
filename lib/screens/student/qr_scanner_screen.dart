@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../services/attendance_service.dart';
-import '../../services/location_service.dart';
 import '../../services/biometric_service.dart';
 
-/// Màn hình Quét mã QR điểm danh (tích hợp GPS & Vân tay)
+/// Màn hình Quét mã QR điểm danh (Aligned with api_n3conca)
 class QrScannerScreen extends StatefulWidget {
   const QrScannerScreen({super.key});
 
@@ -13,29 +12,17 @@ class QrScannerScreen extends StatefulWidget {
 
 class _QrScannerScreenState extends State<QrScannerScreen> {
   final AttendanceService _attendanceService = AttendanceService();
-  final LocationService _locationService = LocationService();
   final BiometricService _biometricService = BiometricService();
   bool _isProcessing = false;
   String _statusMessage = 'Đang chờ quét mã QR...';
 
-  void _simulateScanAndCheckIn(String qrData) async {
+  void _simulateScanAndCheckIn(String qrCode) async {
     setState(() {
       _isProcessing = true;
-      _statusMessage = 'Đang kiểm tra vị trí GPS...';
+      _statusMessage = 'Đang xác thực sinh trắc học...';
     });
 
-    // 1. Check Location
-    final position = await _locationService.getCurrentLocation();
-    if (position == null) {
-      setState(() {
-        _isProcessing = false;
-        _statusMessage = 'Không thể lấy vị trí GPS. Vui lòng bật GPS!';
-      });
-      return;
-    }
-
-    // 2. Check Biometric
-    setState(() => _statusMessage = 'Đang xác thực sinh trắc học...');
+    // 1. Check Biometric
     bool canAuth = await _biometricService.isSupported();
     if (canAuth) {
       bool isAuthenticated = await _biometricService.authenticate();
@@ -48,13 +35,9 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
       }
     }
 
-    // 3. Send Check-In API
+    // 2. Send Check-In API (Aligned with api_n3conca ScanQrRequest expecting qrCode)
     setState(() => _statusMessage = 'Đang gửi thông tin điểm danh lên hệ thống...');
-    bool success = await _attendanceService.scanQr(
-      qrData: qrData,
-      latitude: position.latitude,
-      longitude: position.longitude,
-    );
+    bool success = await _attendanceService.scanQr(qrCode: qrCode);
 
     setState(() {
       _isProcessing = false;
@@ -89,7 +72,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                 style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12)),
                 icon: const Icon(Icons.camera_alt),
                 label: const Text('Mô phỏng quét QR & Điểm danh'),
-                onPressed: () => _simulateScanAndCheckIn('SAMPLE_SESSION_QR_CODE_123'),
+                onPressed: () => _simulateScanAndCheckIn('SAMPLE_QR_CODE_XYZ123'),
               ),
           ],
         ),

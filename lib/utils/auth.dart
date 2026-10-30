@@ -38,11 +38,11 @@ class AuthUtils {
 
   static String? getRole(String token) {
     final decoded = decodeJwt(token);
-    return decoded?['role'];
+    return decoded?['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ?? decoded?['role'];
   }
 
   static String? getUserId(String token) {
     final decoded = decodeJwt(token);
-    return decoded?['user_id'] ?? decoded?['sub'];
+    return decoded?['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ?? decoded?['user_id'] ?? decoded?['sub'];
   }
 }

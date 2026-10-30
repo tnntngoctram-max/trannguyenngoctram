@@ -1,52 +1,36 @@
-/// Model Phiên điểm danh
+/// Model Phiên điểm danh (Aligned with api_n3conca)
 class AttendanceSession {
-  final String id;
-  final String className;
-  final String subjectCode;
-  final DateTime startTime;
-  final DateTime endTime;
-  final String qrCodeData;
-  final double latitude;
-  final double longitude;
-  final double radiusMeters;
+  final int id;
+  final int classSessionId;
+  final String? qrCode;
+  final DateTime? qrExpiresAt;
+  final bool isOpen;
 
   AttendanceSession({
     required this.id,
-    required this.className,
-    required this.subjectCode,
-    required this.startTime,
-    required this.endTime,
-    required this.qrCodeData,
-    required this.latitude,
-    required this.longitude,
-    required this.radiusMeters,
+    required this.classSessionId,
+    this.qrCode,
+    this.qrExpiresAt,
+    required this.isOpen,
   });
 
   factory AttendanceSession.fromJson(Map<String, dynamic> json) {
     return AttendanceSession(
-      id: json['id'] ?? '',
-      className: json['class_name'] ?? '',
-      subjectCode: json['subject_code'] ?? '',
-      startTime: DateTime.parse(json['start_time'] ?? DateTime.now().toIso8601String()),
-      endTime: DateTime.parse(json['end_time'] ?? DateTime.now().toIso8601String()),
-      qrCodeData: json['qr_code_data'] ?? '',
-      latitude: (json['latitude'] ?? 0.0).toDouble(),
-      longitude: (json['longitude'] ?? 0.0).toDouble(),
-      radiusMeters: (json['radius_meters'] ?? 50.0).toDouble(),
+      id: json['id'] ?? 0,
+      classSessionId: json['classSessionId'] ?? 0,
+      qrCode: json['qrCode'],
+      qrExpiresAt: json['qrExpiresAt'] != null ? DateTime.parse(json['qrExpiresAt']) : null,
+      isOpen: json['isOpen'] ?? false,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'class_name': className,
-      'subject_code': subjectCode,
-      'start_time': startTime.toIso8601String(),
-      'end_time': endTime.toIso8601String(),
-      'qr_code_data': qrCodeData,
-      'latitude': latitude,
-      'longitude': longitude,
-      'radius_meters': radiusMeters,
+      'classSessionId': classSessionId,
+      'qrCode': qrCode,
+      'qrExpiresAt': qrExpiresAt?.toIso8601String(),
+      'isOpen': isOpen,
     };
   }
 }

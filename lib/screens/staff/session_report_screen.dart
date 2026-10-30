@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../services/attendance_service.dart';
 import '../../models/attendance_session.dart';
+import '../../utils/constants.dart';
+import 'session_detail_screen.dart';
 
-/// Xem danh sách & Báo cáo điểm danh
+/// Xem danh sách & Báo cáo điểm danh (Soft rounded icons & session management)
 class SessionReportScreen extends StatefulWidget {
   const SessionReportScreen({super.key});
 
@@ -41,12 +43,24 @@ class _SessionReportScreenState extends State<SessionReportScreen> {
               final session = sessions[index];
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppConstants.defaultRadius)),
                 child: ListTile(
-                  title: Text(session.className, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text('Môn: ${session.subjectCode}\nBắt đầu: ${session.startTime}'),
-                  trailing: const Icon(Icons.arrow_forward_ios),
+                  leading: const Icon(Icons.event_note_rounded, color: AppConstants.primaryColor, size: 28),
+                  title: Text('Phiên #${session.id} (Lớp #${session.classSessionId})', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text('Trạng thái: ${session.isOpen ? "Đang mở" : "Đã đóng"}'),
+                  trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.grey),
                   onTap: () {
-                    // Navigate to detail report if needed
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SessionDetailScreen(
+                          sessionId: session.id,
+                          classSessionId: session.classSessionId,
+                          isOpenInitial: session.isOpen,
+                          qrCodeInitial: session.qrCode,
+                        ),
+                      ),
+                    );
                   },
                 ),
               );

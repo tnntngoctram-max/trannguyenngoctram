@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
-import 'otp_screen.dart';
+import '../../utils/constants.dart';
+import 'login_screen.dart';
 
-/// Màn hình Đăng ký
+/// Màn hình Đăng ký (Aligned with api_n3conca & Classic Theme)
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
 
@@ -11,31 +12,33 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
-  final _nameController = TextEditingController();
+  final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  String _selectedRole = 'student';
   final AuthService _authService = AuthService();
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   void _handleRegister() async {
     setState(() => _isLoading = true);
     final result = await _authService.register(
-      _nameController.text.trim(),
+      _fullNameController.text.trim(),
       _emailController.text.trim(),
+      _usernameController.text.trim(),
       _passwordController.text.trim(),
-      _selectedRole,
     );
     setState(() => _isLoading = false);
 
     if (!mounted) return;
 
     if (result['success'] == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đăng ký thành công! Vui lòng đăng nhập.')),
+      );
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (context) => OtpScreen(email: _emailController.text.trim()),
-        ),
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -56,11 +59,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 TextField(
-                  controller: _nameController,
+                  controller: _fullNameController,
                   decoration: const InputDecoration(
                     labelText: 'Họ và tên',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.person),
+                    prefixIcon: Icon(Icons.person_outline, color: AppConstants.secondaryColor),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -68,34 +70,37 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   controller: _emailController,
                   decoration: const InputDecoration(
                     labelText: 'Email',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.email),
+                    prefixIcon: Icon(Icons.email_outlined, color: AppConstants.secondaryColor),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _usernameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Tên đăng nhập (tuỳ chọn)',
+                    prefixIcon: Icon(Icons.account_circle_outlined, color: AppConstants.secondaryColor),
                   ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Mật khẩu',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.lock),
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
+                    labelText: 'Mật khẩu (tối thiểu 8 ký tự)',
+                    prefixIcon: const Icon(Icons.lock_outline, color: AppConstants.secondaryColor),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                        color: Colors.grey.shade600,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  initialValue: _selectedRole,
-                  decoration: const InputDecoration(
-                    labelText: 'Vai trò',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: 'student', child: Text('Sinh viên')),
-                    DropdownMenuItem(value: 'staff', child: Text('Giảng viên')),
-                  ],
-                  onChanged: (val) {
-                    if (val != null) setState(() => _selectedRole = val);
-                  },
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
@@ -105,7 +110,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     onPressed: _isLoading ? null : _handleRegister,
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text('Đăng ký', style: TextStyle(fontSize: 16)),
+                        : const Text('Đăng ký', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],

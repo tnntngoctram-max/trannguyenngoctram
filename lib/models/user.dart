@@ -13,11 +13,17 @@ class User {
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
+    String roleStr = 'student';
+    if (json['roles'] is List && (json['roles'] as List).isNotEmpty) {
+      roleStr = json['roles'][0].toString();
+    } else if (json['role'] != null) {
+      roleStr = json['role'].toString();
+    }
     return User(
-      id: json['id'] ?? '',
-      name: json['name'] ?? '',
-      email: json['email'] ?? '',
-      role: json['role'] ?? 'student',
+      id: json['id']?.toString() ?? '',
+      name: json['fullName']?.toString() ?? json['name']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      role: roleStr,
     );
   }
 
